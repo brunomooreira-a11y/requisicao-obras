@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Requisição de Materiais</title>
+<style>
+:root{--bg:#f6f5f1;--sf:#fff;--tx:#1d1d1b;--mu:#6b6a64;--bd:#dcdad2;--ac:#c2570c;--ac2:#fff;--ok:#2e7d32}
+@media(prefers-color-scheme:dark){:root{--bg:#171716;--sf:#222220;--tx:#f0efe9;--mu:#a09f97;--bd:#3a3935;--ac:#e8803a;--ac2:#171716;--ok:#6fbf73}}
+*{box-sizing:border-box}html{color-scheme:light dark}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0}h2{font-size:15px;margin:18px 0 8px;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px}
+nav{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px}
+nav button{flex:none;background:var(--sf);color:var(--tx);border:1px solid var(--bd);padding:9px 14px;border-radius:8px;font:inherit}
+nav button.on{background:var(--ac);color:var(--ac2);border-color:var(--ac)}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:12px}
+label{display:block;font-size:13px;color:var(--mu);margin:10px 0 4px}
+input,select{width:100%;padding:11px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+input[type=checkbox]{width:auto}
+.ck{display:flex;gap:8px;align-items:center;color:var(--tx);font-size:15px;margin:10px 0 0}
+.row{display:flex;gap:8px}.row>*{flex:1}
+button.p{background:var(--ac);color:var(--ac2);border:0;padding:12px 16px;border-radius:8px;font:inherit;font-weight:600;width:100%;margin-top:12px}
+button.s{background:none;color:var(--ac);border:1px dashed var(--ac);padding:11px;border-radius:8px;font:inherit;width:100%;margin-top:10px}
+button.x{background:none;border:0;color:var(--mu);font-size:15px;padding:4px 8px}
+.sb{flex:1;background:var(--sf);color:var(--tx);border:1px solid var(--bd);padding:10px;border-radius:8px;font:inherit}.sb.on{background:var(--ac);color:var(--ac2);border-color:var(--ac);font-weight:600}
+.obra{background:var(--bg);border-left:4px solid var(--ac);padding:10px 12px;border-radius:6px;margin-top:10px}
+.tag{display:inline-block;background:var(--ac);color:var(--ac2);padding:2px 9px;border-radius:99px;font-size:13px;font-weight:600}
+.urg{display:inline-block;background:#d32f2f;color:#fff;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:700;white-space:nowrap}
+.ths{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}.th{width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid var(--bd);cursor:pointer}
+.it{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--bd)}.it:last-child{border:0}
+.it>div{flex:1}.mu{color:var(--mu);font-size:13px}.err{color:#d32f2f;margin-top:8px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
+.hide{display:none}
+</style></head><body>
+<main id="login" class="hide">
+ <h1>Requisição de Materiais</h1>
+ <div class="card" style="margin-top:16px"><label>Usuário</label><input id="lgU" autocomplete="username" autocapitalize="none">
+  <label>Senha</label><input id="lgP" type="password" autocomplete="current-password">
+  <button class="p" id="lgBtn">Entrar</button><div class="err" id="lgMsg"></div></div>
+</main>
+<main id="app" class="hide">
+<header><h1>Requisição de Materiais</h1><div class="mu"><span id="quem"></span> <button class="x" id="sair">Sair</button></div></header>
+<nav id="nav"></nav>
+<div id="v-sol">
+ <div class="card"><label>Nome do mestre</label><input id="mestre" autocomplete="off">
+  <label>Tag da obra</label><select id="nobra"></select><div id="obraInfo"></div></div>
+ <div id="itensBox" class="hide">
+  <div class="card"><h2 style="margin-top:0">Adicionar item</h2>
+   <label>Material cadastrado</label><select id="mat"></select>
+   <div class="row"><div><label>Unidade</label><input id="matUn" readonly></div><div><label>Quantidade</label><input id="matQt" type="number" min="0" step="any" inputmode="decimal"></div></div>
+   <label>Observação (opcional)</label><input id="matObs">
+   <label>Fotos (opcional, até 3)</label><input type="file" id="matFoto" accept="image/*" multiple>
+   <label class="ck"><input type="checkbox" id="matUrg"> Urgente</label>
+   <button class="p" id="addMat">Adicionar à lista</button>
+   <button class="s" id="togMan">+ Lançar descrição manual</button>
+   <div id="man" class="hide"><label>Descrição do item</label><input id="manDesc">
+    <div class="row"><div><label>Unidade</label><input id="manUn" placeholder="un, m, kg, sc…"></div><div><label>Quantidade</label><input id="manQt" type="number" min="0" step="any" inputmode="decimal"></div></div>
+    <label>Observação (opcional)</label><input id="manObs">
+    <label>Fotos (opcional, até 3)</label><input type="file" id="manFoto" accept="image/*" multiple>
+    <label class="ck"><input type="checkbox" id="manUrg"> Urgente</label>
+    <button class="p" id="addMan">Adicionar item manual</button></div></div>
+  <div class="card"><h2 style="margin-top:0">Itens da requisição</h2><div id="lista"></div>
+   <label>Data de entrega dos materiais</label><input id="dEnt" type="date">
+   <button class="p" id="enviar">Enviar requisição</button></div>
+ </div>
+</div>
+<div id="v-cad" class="hide">
+ <div class="row" style="margin-bottom:12px"><button class="sb" id="sObras">Obras</button><button class="sb" id="sMats">Materiais</button><button class="sb" id="sUsu">Usuários</button></div>
+ <div id="v-obras"><button class="p" id="oTog" style="margin:0 0 12px">+ Adicionar obra</button>
+  <div class="card hide" id="oForm"><label>Nome do empreendimento</label><input id="oN"><label>Endereço completo</label><input id="oE"><label>Tag da obra</label><input id="oT"><button class="p" id="oSave">Salvar obra</button></div><div id="oList"></div></div>
+ <div id="v-mats" class="hide"><button class="p" id="mTog" style="margin:0 0 12px">+ Adicionar material</button>
+  <div class="card hide" id="mForm"><label>Descrição do material</label><input id="mD"><label>Unidade de medida</label><input id="mU" placeholder="un, m, m², kg, sc, l…"><button class="p" id="mSave">Salvar material</button></div><div id="mList"></div></div>
+ <div id="v-usu" class="hide"><button class="p" id="uTog" style="margin:0 0 12px">+ Adicionar usuário</button>
+  <div class="card hide" id="uForm"><label>Usuário (login)</label><input id="uU" autocapitalize="none"><label>Nome</label><input id="uN"><label>Senha (mín. 6 caracteres)</label><input id="uP" type="text" autocomplete="off">
+   <label>Tipo de acesso</label><select id="uR"><option value="mestre">Mestre (só solicita)</option><option value="admin">Administrador</option></select><button class="p" id="uSave">Criar usuário</button></div><div id="uList"></div></div>
+</div>
+<div id="v-ped" class="hide"><div id="pList"></div></div>
+</main>
+<div id="lb" class="modal hide"><img id="lbImg" style="max-width:100%;max-height:100%;border-radius:8px"></div>
+<div id="dlg" class="modal hide"><div class="card" style="max-width:360px;width:100%;text-align:center;margin:0"><div style="color:var(--ok);font-weight:600">Requisição enviada ✔</div><div class="mu" style="margin-top:10px">Número da requisição</div><div id="dlgNum" style="font-size:30px;font-weight:700"></div><div class="mu" id="dlgDt" style="margin-top:6px"></div><button class="p" id="dlgOk">OK (Enter)</button></div></div>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const C=window.CONFIG||{};
+if(!C.url||C.url.startsWith("COLE")){document.body.innerHTML='<main><h1>Configuração pendente</h1><p>Preencha o arquivo config.js com a URL e a chave do Supabase.</p></main>';throw new Error("config");}
+const sb=supabase.createClient(C.url,C.key),DOM="@obras.example.com";
+let me=null,admin=false,obras=[],mats=[],itens=[],obra=null,reqs=[],usuarios=[],viewId=null,edit=false,draft=null;
+const hoje=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+const fd=s=>s?s.split("-").reverse().join("/"):"—";
+const rn=(tag,n)=>n?tag+"-"+String(n).padStart(3,"0"):"—";
+const hasUrg=r=>r.itens.some(i=>i.urg);
+const URG='<span class="urg">● URGENTE</span>';
+const thumbs=i=>i.fotos&&i.fotos.length?'<div class="ths">'+i.fotos.map(f=>'<img class="th" src="'+esc(f.url||"")+'">').join("")+'</div>':'';
+const itemLine=i=>esc(i.desc)+(i.manual?' <span class="mu">(manual)</span>':'')+(i.urg?' '+URG:'')+(i.obs?'<div class="mu">Obs.: '+esc(i.obs)+'</div>':'')+thumbs(i);
+const obraBox=o=>'<div class="obra"><span class="tag">'+esc(o.tag)+'</span> <b>'+esc(o.nome||"")+'</b><div class="mu" style="margin-top:4px">Endereço de entrega</div><div>'+esc(o.endereco)+'</div></div>';
+const optsObras=(sel)=>obras.map(o=>'<option value="'+o.id+'"'+(o.id===sel?' selected':'')+'>'+esc(o.tag)+(o.nome?' — '+esc(o.nome):'')+'</option>').join("");
+const erro=(e)=>alert("Erro: "+(e&&e.message?e.message:e));
+
+/* ---------- login ---------- */
+function telaLogin(){$("app").classList.add("hide");$("login").classList.remove("hide");$("lgP").value="";}
+$("lgBtn").onclick=async()=>{
+ $("lgMsg").textContent="";
+ const {error}=await sb.auth.signInWithPassword({email:$("lgU").value.trim().toLowerCase()+DOM,password:$("lgP").value});
+ if(error)return $("lgMsg").textContent="Usuário ou senha inválidos.";
+ await entrar();
+};
+$("lgP").onkeydown=e=>{if(e.key==="Enter")$("lgBtn").click();};
+$("sair").onclick=async()=>{await sb.auth.signOut();me=null;telaLogin();};
+async function entrar(){
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session)return telaLogin();
+ const {data:p}=await sb.from("perfis").select("*").eq("id",session.user.id).maybeSingle();
+ if(!p||!p.ativo){await sb.auth.signOut();telaLogin();$("lgMsg").textContent="Usuário sem acesso.";return;}
+ me=p;admin=p.papel==="admin";
+ $("login").classList.add("hide");$("app").classList.remove("hide");$("quem").textContent=p.nome||p.usuario;
+ resetSol();await carregarBase();nav("sol");
+}
+
+/* ---------- navegação ---------- */
+const tabs=[["sol","Solicitar"],["cad","Cadastros"],["ped","Pedidos"]];
+function nav(cur){
+ $("nav").innerHTML="";
+ tabs.forEach(([k,t])=>{if(k!=="sol"&&!admin)return;const b=document.createElement("button");b.textContent=t;b.className=k===cur?"on":"";b.onclick=()=>nav(k);$("nav").appendChild(b);});
+ tabs.forEach(([k])=>$("v-"+k).classList.toggle("hide",k!==cur));
+ if(cur==="ped"&&admin){viewId=null;edit=false;carregarReqs();}
+ if(cur==="cad"&&admin)sub(window._sub||"obras");
+}
+function sub(k){window._sub=k;["obras","mats","usu"].forEach(x=>$("v-"+x).classList.toggle("hide",x!==k));$("sObras").classList.toggle("on",k==="obras");$("sMats").classList.toggle("on",k==="mats");$("sUsu").classList.toggle("on",k==="usu");if(k==="usu")carregarUsuarios();}
+$("sObras").onclick=()=>sub("obras");$("sMats").onclick=()=>sub("mats");$("sUsu").onclick=()=>sub("usu");
+
+/* ---------- dados base ---------- */
+async function carregarBase(){
+ const [o,m]=await Promise.all([sb.from("obras").select("*").order("tag"),sb.from("materiais").select("*").order("descricao")]);
+ obras=o.data||[];mats=m.data||[];
+ const cur=$("nobra").value;
+ $("nobra").innerHTML='<option value="">Selecione a tag da obra…</option>'+obraOpts();$("nobra").value=obras.some(x=>x.id===cur)?cur:"";
+ $("mat").innerHTML='<option value="">Selecione…</option>'+mats.map(x=>'<option value="'+x.id+'">'+esc(x.descricao)+'</option>').join("");
+ showObra();
+ if(admin){listaEd($("oList"),"obras",obras,[["nome","Nome do empreendimento"],["endereco","Endereço completo"],["tag","Tag da obra"]]);listaEd($("mList"),"materiais",mats,[["descricao","Descrição"],["unidade","Unidade"]]);}
+}
+const obraOpts=()=>obras.map(o=>'<option value="'+o.id+'">'+esc(o.tag)+(o.nome?' — '+esc(o.nome):'')+'</option>').join("");
+function listaEd(el,tabela,rows,campos){
+ el.innerHTML=rows.map(r=>'<div class="card">'+campos.map(([f,l])=>'<label>'+l+'</label><input data-id="'+r.id+'" data-f="'+f+'" value="'+esc(r[f])+'">').join("")+'<div style="text-align:right"><button class="x" data-del="'+r.id+'">Excluir ✕</button></div></div>').join("")||'<div class="mu">Nenhum cadastro ainda.</div>';
+ el.querySelectorAll("input").forEach(i=>i.onchange=async()=>{const r=rows.find(x=>x.id===i.dataset.id),f=i.dataset.f,v=i.value.trim();if(!v){i.value=r[f];return;}if(v===r[f])return;const {error}=await sb.from(tabela).update({[f]:v}).eq("id",r.id);if(error){i.value=r[f];return erro(error);}await carregarBase();});
+ el.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{if(!confirm("Excluir este cadastro?"))return;const {error}=await sb.from(tabela).delete().eq("id",b.dataset.del);if(error)return erro(error);await carregarBase();});
+}
+$("oTog").onclick=()=>$("oForm").classList.toggle("hide");
+$("mTog").onclick=()=>$("mForm").classList.toggle("hide");
+$("uTog").onclick=()=>$("uForm").classList.toggle("hide");
+$("oSave").onclick=async()=>{const nome=$("oN").value.trim(),endereco=$("oE").value.trim(),tag=$("oT").value.trim();if(!nome||!endereco||!tag)return alert("Preencha todos os campos.");const {error}=await sb.from("obras").insert({nome,endereco,tag});if(error)return erro(error.code==="23505"?"Já existe uma obra com essa tag.":error);["oN","oE","oT"].forEach(i=>$(i).value="");$("oForm").classList.add("hide");await carregarBase();};
+$("mSave").onclick=async()=>{const descricao=$("mD").value.trim(),unidade=$("mU").value.trim();if(!descricao||!unidade)return alert("Preencha descrição e unidade.");const {error}=await sb.from("materiais").insert({descricao,unidade});if(error)return erro(error);$("mD").value="";$("mU").value="";$("mForm").classList.add("hide");await carregarBase();};
+
+/* ---------- usuários ---------- */
+async function fn(body){const {data,error}=await sb.functions.invoke("admin-users",{body});if(error){let m=error.message;try{m=(await error.context.json()).erro||m;}catch(e){}throw new Error(m);}return data;}
+async function carregarUsuarios(){
+ try{usuarios=(await fn({acao:"listar"})).usuarios;}catch(e){return erro(e);}
+ $("uList").innerHTML=usuarios.map(u=>'<div class="card" data-u="'+u.id+'"><b>'+esc(u.usuario)+'</b><label>Nome</label><input data-f="nome" value="'+esc(u.nome||"")+'"><div class="row"><div><label>Tipo</label><select data-f="papel"><option value="mestre"'+(u.papel==="mestre"?" selected":"")+'>Mestre</option><option value="admin"'+(u.papel==="admin"?" selected":"")+'>Administrador</option></select></div><div><label>Nova senha (opcional)</label><input data-f="senha" autocomplete="off"></div></div><label class="ck"><input type="checkbox" data-f="ativo"'+(u.ativo?" checked":"")+'> Acesso ativo</label><button class="p" data-save="'+u.id+'">Salvar alterações</button></div>').join("");
+ $("uList").querySelectorAll("[data-save]").forEach(b=>b.onclick=async()=>{const c=b.closest("[data-u]"),g=f=>c.querySelector('[data-f="'+f+'"]');try{await fn({acao:"editar",id:b.dataset.save,nome:g("nome").value.trim(),papel:g("papel").value,ativo:g("ativo").checked,senha:g("senha").value||undefined});alert("Usuário atualizado.");carregarUsuarios();}catch(e){erro(e);}});
+}
+$("uSave").onclick=async()=>{try{await fn({acao:"criar",usuario:$("uU").value,nome:$("uN").value.trim(),senha:$("uP").value,papel:$("uR").value});["uU","uN","uP"].forEach(i=>$(i).value="");$("uForm").classList.add("hide");carregarUsuarios();}catch(e){erro(e);}};
+
+/* ---------- solicitar ---------- */
+function showObra(){obra=obras.find(o=>o.id===$("nobra").value)||null;$("obraInfo").innerHTML=obra?obraBox(obra):"";$("itensBox").classList.toggle("hide",!(obra&&$("mestre").value.trim()));}
+function resetSol(){itens=[];["mestre","dEnt","mat","matUn","matQt","matObs","matFoto","manDesc","manUn","manQt","manObs","manFoto"].forEach(i=>$(i).value="");$("nobra").value="";$("matUrg").checked=false;$("manUrg").checked=false;$("man").classList.add("hide");renderItens();showObra();}
+function renderItens(){
+ $("lista").innerHTML=itens.length?itens.map((i,x)=>'<div class="it"><div>'+itemLine(i)+'</div><b>'+esc(i.qtd)+' '+esc(i.un)+'</b><button class="x" data-x="'+x+'">✕</button></div>').join(""):'<div class="mu">Nenhum item ainda.</div>';
+ $("lista").querySelectorAll("[data-x]").forEach(b=>b.onclick=()=>{itens.splice(+b.dataset.x,1);renderItens();});
+}
+async function comprime(f){const b=await createImageBitmap(f),s=Math.min(1,1280/Math.max(b.width,b.height)),c=document.createElement("canvas");c.width=Math.round(b.width*s);c.height=Math.round(b.height*s);c.getContext("2d").drawImage(b,0,0,c.width,c.height);return new Promise(r=>c.toBlob(r,"image/jpeg",.75));}
+async function fotosDe(inp){const r=[];for(const f of [...inp.files].slice(0,3)){try{const blob=await comprime(f);r.push({blob,url:URL.createObjectURL(blob)});}catch(e){alert("Não foi possível usar uma das fotos.");}}inp.value="";return r;}
+function add(desc,un,qtd,manual,obs,urg,fotos){itens.push({desc,un,qtd,manual,obs:obs.trim(),urg,fotos});renderItens();}
+$("nobra").onchange=showObra;$("mestre").oninput=showObra;
+$("mat").onchange=()=>{const m=mats.find(x=>x.id===$("mat").value);$("matUn").value=m?m.unidade:"";};
+$("addMat").onclick=async()=>{const m=mats.find(x=>x.id===$("mat").value),q=$("matQt").value;if(!m||!(+q>0))return alert("Escolha o material e a quantidade.");add(m.descricao,m.unidade,q,false,$("matObs").value,$("matUrg").checked,await fotosDe($("matFoto")));["mat","matUn","matQt","matObs"].forEach(i=>$(i).value="");$("matUrg").checked=false;};
+$("togMan").onclick=()=>$("man").classList.toggle("hide");
+$("addMan").onclick=async()=>{const d=$("manDesc").value.trim(),u=$("manUn").value.trim(),q=$("manQt").value;if(!d||!u||!(+q>0))return alert("Preencha descrição, unidade e quantidade.");add(d,u,q,true,$("manObs").value,$("manUrg").checked,await fotosDe($("manFoto")));["manDesc","manUn","manQt","manObs"].forEach(i=>$(i).value="");$("manUrg").checked=false;};
+$("enviar").onclick=async()=>{
+ if(!itens.length)return alert("Adicione ao menos um item.");
+ const ent=$("dEnt").value;if(!ent)return alert("Informe a data de entrega.");
+ $("enviar").disabled=true;
+ try{
+  const {data:r,error}=await sb.from("requisicoes").insert({obra_id:obra.id,tag:obra.tag,empreendimento:obra.nome,endereco:obra.endereco,mestre:$("mestre").value.trim(),data_abertura:hoje(),data_entrega:ent}).select().single();
+  if(error)throw error;
+  const {data:ins,error:e2}=await sb.from("requisicao_itens").insert(itens.map((i,x)=>({requisicao_id:r.id,ordem:x,descricao:i.desc,unidade:i.un,quantidade:+i.qtd,observacao:i.obs||null,urgente:i.urg,manual:i.manual}))).select();
+  if(e2)throw e2;
+  const rows=[];
+  for(let x=0;x<itens.length;x++){const it=ins.find(z=>z.ordem===x);for(let y=0;y<itens[x].fotos.length;y++){const path=r.id+"/"+it.id+"_"+y+".jpg";const {error:e3}=await sb.storage.from("fotos").upload(path,itens[x].fotos[y].blob,{contentType:"image/jpeg"});if(e3)throw e3;rows.push({item_id:it.id,caminho:path});}}
+  if(rows.length){const {error:e4}=await sb.from("requisicao_fotos").insert(rows);if(e4)throw e4;}
+  const num=rn(r.tag,r.numero);resetSol();showDlg(num,Date.now());
+ }catch(e){erro(e);}
+ $("enviar").disabled=false;
+};
+function showDlg(n,ts){$("dlgNum").textContent=n;$("dlgDt").textContent=new Date(ts).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"medium"});$("dlg").classList.remove("hide");$("dlgOk").focus();}
+const closeDlg=()=>$("dlg").classList.add("hide");
+$("dlgOk").onclick=closeDlg;
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&!$("dlg").classList.contains("hide")){e.preventDefault();closeDlg();}});
+document.addEventListener("click",e=>{const t=e.target;if(t.classList&&t.classList.contains("th")&&t.getAttribute("src")){$("lbImg").src=t.src;$("lb").classList.remove("hide");}else if(t.id==="lb"||t.id==="lbImg")$("lb").classList.add("hide");});
+
+/* ---------- pedidos (administrador) ---------- */
+const norm=r=>({...r,itens:(r.requisicao_itens||[]).sort((a,b)=>a.ordem-b.ordem).map(i=>({id:i.id,desc:i.descricao,un:i.unidade,qtd:String(i.quantidade),obs:i.observacao||"",urg:i.urgente,manual:i.manual,fotos:(i.requisicao_fotos||[]).map(f=>({id:f.id,caminho:f.caminho}))}))});
+async function carregarReqs(){
+ const {data,error}=await sb.from("requisicoes").select("*,requisicao_itens(*,requisicao_fotos(*))").order("abertura_em",{ascending:false});
+ if(error)return erro(error);
+ reqs=(data||[]).map(norm);renderPeds();
+}
+function renderPeds(){if(edit)return;const r=viewId&&reqs.find(x=>x.id===viewId);if(r)drawView(r);else{viewId=null;drawList();}}
+function drawList(){
+ $("pList").innerHTML=reqs.length?reqs.map(r=>'<div class="card"><div class="row" style="align-items:center"><div><b>Requisição '+esc(rn(r.tag,r.numero))+'</b> '+(hasUrg(r)?URG:'')+'<div class="mu">'+esc(r.empreendimento||r.tag)+' · Mestre: '+esc(r.mestre)+'</div><div class="mu">Abertura: '+fd(r.data_abertura)+' · Entrega: '+fd(r.data_entrega)+'</div></div><button class="s" style="flex:none;width:auto;margin:0;padding:9px 12px" data-v="'+r.id+'">Ver requisição</button></div></div>').join(""):'<div class="mu">Nenhuma requisição ainda.</div>';
+ $("pList").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{viewId=b.dataset.v;renderPeds();scrollTo(0,0);});
+}
+async function assinar(r){
+ const paths=r.itens.flatMap(i=>i.fotos.map(f=>f.caminho));if(!paths.length)return;
+ const {data}=await sb.storage.from("fotos").createSignedUrls(paths,3600);
+ (data||[]).forEach(d=>r.itens.forEach(i=>i.fotos.forEach(f=>{if(f.caminho===d.path)f.url=d.signedUrl;})));
+}
+async function drawView(r){
+ await assinar(r);if(viewId!==r.id||edit)return;
+ $("pList").innerHTML='<div class="card"><button class="x" id="vBack" style="padding:0 0 8px">← Voltar à lista</button><h2 style="margin:0">Requisição de material</h2><div style="font-size:20px;font-weight:700">'+esc(rn(r.tag,r.numero))+' '+(hasUrg(r)?URG:'')+'</div>'+obraBox({tag:r.tag,nome:r.empreendimento,endereco:r.endereco})+'<div class="mu" style="margin-top:8px">Mestre: '+esc(r.mestre)+'</div><div class="mu">Abertura: '+fd(r.data_abertura)+' · Entrega: '+fd(r.data_entrega)+'</div><h2>Itens</h2>'+r.itens.map(i=>'<div class="it"><div>'+itemLine(i)+'</div><b>'+esc(i.qtd)+' '+esc(i.un)+'</b></div>').join("")+'<div class="row"><button class="p" id="vEdit">Editar</button><button class="p" id="vDel" style="background:#d32f2f;color:#fff">Excluir</button></div></div>';
+ $("vBack").onclick=()=>{viewId=null;renderPeds();};
+ $("vEdit").onclick=()=>openEdit(r);
+ $("vDel").onclick=async()=>{if(!confirm("Excluir esta requisição?"))return;const paths=r.itens.flatMap(i=>i.fotos.map(f=>f.caminho));if(paths.length)await sb.storage.from("fotos").remove(paths);const {error}=await sb.from("requisicoes").delete().eq("id",r.id);if(error)return erro(error);viewId=null;carregarReqs();};
+}
+function itemRows(its){return its.map((i,x)=>'<div class="card" style="padding:10px"><input data-i="'+x+'" data-f="desc" placeholder="Descrição" value="'+esc(i.desc)+'"><div class="row" style="margin-top:6px;align-items:center"><input data-i="'+x+'" data-f="qtd" type="number" min="0" step="any" placeholder="Qtd" value="'+esc(i.qtd)+'"><input data-i="'+x+'" data-f="un" placeholder="Unidade" value="'+esc(i.un)+'"><button class="x" style="flex:none" data-rm="'+x+'">✕</button></div><input style="margin-top:6px" data-i="'+x+'" data-f="obs" placeholder="Observação" value="'+esc(i.obs)+'"><label class="ck"><input type="checkbox" data-i="'+x+'" data-f="urg"'+(i.urg?' checked':'')+'> Urgente</label>'+(i.fotos&&i.fotos.length?'<div class="mu" style="margin-top:6px">'+i.fotos.length+' foto(s) anexada(s)</div>':'')+'</div>').join("");}
+function drawIt(){
+ $("eIt").innerHTML=itemRows(draft);
+ $("eIt").querySelectorAll("[data-i]").forEach(i=>i.oninput=i.onchange=()=>{draft[+i.dataset.i][i.dataset.f]=i.type==="checkbox"?i.checked:i.value;});
+ $("eIt").querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{draft.splice(+b.dataset.rm,1);drawIt();});
+}
+function openEdit(r){
+ edit=true;draft=JSON.parse(JSON.stringify(r.itens));
+ $("pList").innerHTML='<div class="card"><b>Editando '+esc(rn(r.tag,r.numero))+'</b><label>Mestre</label><input id="eM" value="'+esc(r.mestre)+'"><label>Tag da obra</label><select id="eO">'+(obras.some(o=>o.id===r.obra_id)?'':'<option value="">'+esc(r.tag)+' (não cadastrada)</option>')+optsObras(r.obra_id)+'</select><div class="row"><div><label>Data de abertura</label><input id="eA" type="date" value="'+esc(r.data_abertura)+'"></div><div><label>Data de entrega</label><input id="eE" type="date" value="'+esc(r.data_entrega)+'"></div></div><h2>Itens</h2><div id="eIt"></div><button class="s" id="eAdd">+ Adicionar item</button><div class="row"><button class="p" id="eSave">Salvar</button><button class="p" id="eCan" style="background:var(--mu)">Cancelar</button></div></div>';
+ drawIt();
+ $("eAdd").onclick=()=>{draft.push({desc:"",un:"",qtd:"",obs:"",urg:false,manual:true,fotos:[]});drawIt();};
+ $("eCan").onclick=()=>{edit=false;draft=null;renderPeds();};
+ $("eSave").onclick=async()=>{
+  if(!draft.length||draft.some(i=>!String(i.desc).trim()||!String(i.un).trim()||!(+i.qtd>0)))return alert("Revise os itens: descrição, unidade e quantidade.");
+  if(!$("eM").value.trim()||!$("eA").value||!$("eE").value)return alert("Preencha mestre e as datas.");
+  const o=obras.find(x=>x.id===$("eO").value);
+  try{
+   const up={mestre:$("eM").value.trim(),data_abertura:$("eA").value,data_entrega:$("eE").value};
+   if(o){up.obra_id=o.id;up.tag=o.tag;up.empreendimento=o.nome;up.endereco=o.endereco;}
+   let {error}=await sb.from("requisicoes").update(up).eq("id",r.id);if(error)throw error;
+   const manter=new Set(draft.filter(i=>i.id).map(i=>i.id));
+   for(const i of r.itens.filter(i=>!manter.has(i.id))){const ps=i.fotos.map(f=>f.caminho);if(ps.length)await sb.storage.from("fotos").remove(ps);({error}=await sb.from("requisicao_itens").delete().eq("id",i.id));if(error)throw error;}
+   for(let x=0;x<draft.length;x++){const i=draft[x],d={ordem:x,descricao:String(i.desc).trim(),unidade:String(i.un).trim(),quantidade:+i.qtd,observacao:String(i.obs||"").trim()||null,urgente:!!i.urg};
+    ({error}=i.id?await sb.from("requisicao_itens").update(d).eq("id",i.id):await sb.from("requisicao_itens").insert({...d,requisicao_id:r.id,manual:true}));if(error)throw error;}
+   edit=false;draft=null;await carregarReqs();
+  }catch(e){erro(e);}
+ };
+}
+
+sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_OUT")telaLogin();});
+entrar();
+</script></body></html>
